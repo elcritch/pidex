@@ -10,4 +10,14 @@ defmodule PidexTest do
 
     IO.puts "pid out: #{inspect out1} <#{inspect state!}>"
   end
+
+  test "error pid" do
+    pid = %Pidex{set_point: 10.0, kP: 3.0, kI: 2.0, kD: 1.0 }
+    state = %Pidex.State{}
+
+    assert_raise ArgumentError, fn ->
+      {pid, state, 5.0, 0} |> Pidex.update()
+    end
+
+  end
 end

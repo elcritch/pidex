@@ -15,6 +15,9 @@ defmodule Pidex do
   def update(%Pidex{kP: kP, kI: kI, kD: kD, set_point: target} = pid, %Pidex.State{} = state, process_value, ts) do
 
     dT = ts - state.ts
+
+    unless dT > 0, do: raise %ArgumentError{message: "argument error, PID timestep must be non-zero"}
+
     p_error! = target - process_value
     p_integral! = state.integral + (p_error! * dT)
     p_derivative! = (p_error! - state.error) / dT
