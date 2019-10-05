@@ -6,7 +6,7 @@ defmodule Pidex do
   @moduledoc """
   Documentation for Pidex.
   """
-  defstruct set_point: 0.0, min_point: 0.0, max_point: 0.0, kP: 0.0, kI: 0.0, kD: 0.0
+  defstruct set_point: 0.0, min_point: nil, max_point: nil, kP: 0.0, kI: 0.0, kD: 0.0
 
   def update({%Pidex{} = pid, %Pidex.State{} = state, process_value, ts}) do
    update(pid, state, process_value, ts)
@@ -24,9 +24,9 @@ defmodule Pidex do
     %{min_point: min_point, max_point: max_point} = pid
     output =
       case output do
-        updated_value when updated_value < min_point ->
+        updated_value when is_number(min_point) and updated_value < min_point ->
           pid.min_point
-        updated_value when updated_value > max_point ->
+        updated_value when is_number(max_point) and updated_value > max_point ->
           max_point
         updated_value ->
           updated_value
