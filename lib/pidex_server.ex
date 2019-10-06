@@ -3,12 +3,12 @@ defmodule Pidex.PdxServer do
   use GenServer
 
   def set_time(pid, ts) when is_number(ts) do
-    GenServer.call(pid, {:put, :ts, ts, nil})
+    GenServer.cast(pid, {:put_ts, ts, nil})
   end
 
   def set_time(pid, ts, ts_unit) when not is_nil(ts_unit) do
     ts = if ts == nil, do: System.monotonic_time(ts_unit), else: ts
-    GenServer.call(pid, {:put, :ts, ts, ts_unit})
+    GenServer.cast(pid, {:put_ts, ts, ts_unit})
   end
 
   def set(pid, opts) do
@@ -49,12 +49,16 @@ defmodule Pidex.PdxServer do
 
   def init(args) do
     # IO.puts("pidex server args: #{inspect args}")
-    {:ok, %{
-      pidex: args[:pidex] || args[:settings] || %Pidex{},
-      state: args[:state] || %Pidex.State{},
-      ts_unit: args[:ts_unit] || :seconds,
-      output: nil,
-    }}
+    # GenServer(self(), :update_time)
+    ts_unit = args[:ts_unit] || :second
+    set_time(self(), nil, ts_unit)
+
+    {:ok,
+     %{pidex: args[:pidex] || args[:settings] || %Pidex{},
+       state: args[:state] || %Pidex.State{},
+       ts_unit: ts_unit,
+       ts_factor: args[:ts_factor] || 1.0,
+       output: nil}}
   end
 
   def handle_call({:get, key}, _from, proc_state) do
@@ -62,6 +66,7 @@ defmodule Pidex.PdxServer do
   end
 
   def handle_call({:process_update, process_value, ts}, _from, proc_state) do
+    # IO.puts "process_update: #{System.monotonic_time(:second)} "
     proc_state = process_update(proc_state, process_value, ts)
     {:reply, proc_state[:output], proc_state}
   end
@@ -70,16 +75,30 @@ defmodule Pidex.PdxServer do
     {:noreply, Map.put(proc_state, key, value)}
   end
 
-  def handle_cast({:process_update, process_value, ts}, proc_state) do
-    {:noreply, process_update(proc_state, process_value, ts)}
+  def handle_cast({:put_ts, ts, ts_unit}, proc_state) do
+    # IO.puts "update_time: #{ts}"
+    state = %{ proc_state.state | ts: ts }
+    proc_state =
+      proc_state
+      |> Map.put(:ts_unit, ts_unit)
+      |> Map.put(:state, state)
+
+    {:noreply, proc_state}
   end
 
-  def process_update(proc, process_value, _ts = nil) do
+  def handle_cast({:process_update, process_value, ts}, proc_state) do
+    proc_state = process_update(proc_state, process_value, ts)
+    {:noreply, proc_state}
+  end
+
+  def process_update(proc, process_value, ts) when is_nil(ts) do
     ts = System.monotonic_time(proc.ts_unit)
+    # IO.puts "process_update ts set: #{ts}"
     process_update(proc, process_value, ts)
   end
 
   def process_update(proc, process_value, ts) do
+    # IO.puts "process_update ts!: #{ts}"
     {output, state} =
       {proc.pidex, proc.state, process_value, ts}
       |> Pidex.update()

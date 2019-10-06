@@ -6,16 +6,18 @@ defmodule Pidex do
   @moduledoc """
   Documentation for Pidex.
   """
-  defstruct set_point: 0.0, min_point: nil, max_point: nil, kP: 0.0, kI: 0.0, kD: 0.0
+  defstruct set_point: 0.0, min_point: nil, max_point: nil, kP: 0.0, kI: 0.0, kD: 0.0, ts_factor: 1.0
 
   def update({%Pidex{} = pid, %Pidex.State{} = state, process_value, ts}) do
    update(pid, state, process_value, ts)
   end
 
-  def update(%Pidex{kP: kP, kI: kI, kD: kD, set_point: target} = pid, %Pidex.State{} = state, process_value, ts) do
+  def update(%Pidex{kP: kP, kI: kI, kD: kD, set_point: target} = pid,
+             %Pidex.State{} = state, process_value, ts) do
 
-    dT = ts - state.ts
+    dT = (ts - state.ts)/pid.ts_factor
 
+    # IO.puts "update: dT: #{inspect dT}, ts: #{ts}, state.ts: #{state.ts}"
     unless dT > 0, do: raise %ArgumentError{message: "argument error, PID timestep must be non-zero"}
 
     p_error! = target - process_value
