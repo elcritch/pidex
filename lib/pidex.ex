@@ -6,7 +6,20 @@ defmodule Pidex do
   @moduledoc """
   Documentation for Pidex.
   """
-  defstruct set_point: 0.0, min_point: nil, max_point: nil, kP: 0.0, kI: 0.0, kD: 0.0, ts_factor: 1.0
+   defstruct kP: 0.0, kI: 0.0, kD: 0.0, ts_factor: 1.0,
+             set_point: 0.0, min_point: nil, max_point: nil
+
+  def default_time_stream(ts_unit \\ :milisecond), do: Stream.repeatedly(fn -> System.monotonic_time(ts_unit) end)
+
+  def stream(process_stream, %Pidex{} = pidex, time_stream \\ default_time_stream()) do
+    [ts] = Enum.take(time_stream, 1)
+
+    process_stream
+    |> Stream.transform(%Pidex.State{ts: ts}, fn pv, pid_state ->
+      [ts] = time_stream |> Enum.take(1)
+      Pidex.update(pidex, pid_state, pv, ts)
+    end)
+  end
 
   def update({%Pidex{} = pid, %Pidex.State{} = state, process_value, ts}) do
    update(pid, state, process_value, ts)

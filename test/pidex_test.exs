@@ -129,6 +129,57 @@ defmodule PidexTest do
       # results |> Enum.each(& IO.puts "#{&1|>Keyword.values()|>Enum.join(",")}" )
   end
 
+  test "test stream pid" do
+    # compare sample and constants to https://github.com/ivmech/ivPID/blob/master/test_pid.py
+    sample_time = 0.02
+    pid = %Pidex{kP: 1.2, kI: 1.0, kD: 0.001, min_point: -20.0, max_point: 20.0}
+    state = %Pidex.State{ts: 0.00}
+
+    # acc = {0, pid, state}
+    Process.put(:feedback, 0)
+    Process.put(:pid, pid)
+    Process.put(:state, state)
+
+    1..50
+    |> Stream.map(fn i ->
+      feedback = Process.get(:feedback)
+      if pid.set_point > 0.0 do
+        feedback + (output - 1.0/i)
+      else
+        feedback
+      end
+    end)
+    |> Pidex.stream(pidex)
+    results =
+      for i <- 1..50, into: [] do
+          pid = Process.get(:pid)
+          state = Process.get(:state)
+          feedback = Process.get(:feedback)
+
+          {output, state} =
+            {pid, state, feedback, sample_time*i}
+            |> Pidex.update()
+
+          # IO.puts "pid out: #{inspect output} <#{inspect state}>"
+
+          pid = if i > 9, do: %{ pid | set_point: 1}, else: pid
+
+          Process.put(:pid, pid)
+          Process.put(:feedback, feedback)
+          Process.put(:state, state)
+
+          [ time: i,
+            feedback: feedback,
+            output: output,
+            set_point: pid.set_point ]
+      end
+
+      results! = results |> Enum.map(& &1 |> Keyword.values())
+      check_results(results!, @example_targets)
+      # IO.puts "\n\ntime, feedback, output, set_point"
+      # results |> Enum.each(& IO.puts "#{&1|>Keyword.values()|>Enum.join(",")}" )
+  end
+
   test "test pid server" do
     alias Pidex.PdxServer
 
