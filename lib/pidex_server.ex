@@ -42,13 +42,13 @@ defmodule Pidex.PdxServer do
   end
 
   def start_link(args \\ [], opts \\ []) do
-    IO.puts("pidex server args: #{inspect args}")
-    IO.puts("pidex server opts: #{inspect opts}")
+    # IO.puts("pidex server args: #{inspect args}")
+    # IO.puts("pidex server opts: #{inspect opts}")
     GenServer.start_link(__MODULE__, args, opts ++ [name: __MODULE__])
   end
 
   def init(args) do
-    IO.puts("pidex server args: #{inspect args}")
+    # IO.puts("pidex server args: #{inspect args}")
     {:ok, %{
       pidex: args[:pidex] || args[:settings] || %Pidex{},
       state: args[:state] || %Pidex.State{},
@@ -84,7 +84,7 @@ defmodule Pidex.PdxServer do
       {proc.pidex, proc.state, process_value, ts}
       |> Pidex.update()
 
-    IO.puts "pid out: #{inspect output} <#{inspect state}>"
+    # IO.puts "pid out: #{inspect output} <#{inspect state}>"
     %{ proc | state: state, output: output}
   end
 end
