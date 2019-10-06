@@ -8,10 +8,24 @@ defmodule Pidex do
   """
   defstruct set_point: 0.0, min_point: nil, max_point: nil, kP: 0.0, kI: 0.0, kD: 0.0, ts_factor: 1.0
 
+  @type timestamp() :: integer | float
+
+  @doc """
+  Main PID(ex) controller update function. Each call to this will produce a new PID(ex)
+  state struct which needs to be passed to the next call to `update`.
+
+    pid = %Pidex{kP: 1.2, kI: 1.0, kD: 0.001, max_point: 20.0}
+    initial_state = %Pidex.State{ts: 0.00}
+    {output, initial_state} =
+      {pid, state, 5.0, 1}
+      |> Pidex.update()
+  """
+  @spec update({Pidex.t(), Pidex.State.t(), number, Pidex.timestamp()}) :: {number, Pidex.State.t()}
   def update({%Pidex{} = pid, %Pidex.State{} = state, process_value, ts}) do
    update(pid, state, process_value, ts)
   end
 
+  @spec update(Pidex.t(), Pidex.State.t(), number, Pidex.timestamp()) :: {number, Pidex.State.t()}
   def update(%Pidex{kP: kP, kI: kI, kD: kD, set_point: target} = pid,
              %Pidex.State{} = state, process_value, ts) do
 

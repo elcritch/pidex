@@ -2,41 +2,52 @@ defmodule Pidex.PdxServer do
   require Logger
   use GenServer
 
+  @type proc_state :: %{output: number, pidex: Pidex.t(), state: Pidex.State.t()}
+
+  @spec set_time(GenServer.server(), number | nil, System.time_unit() ) :: :ok
   def set_time(pid, ts, ts_unit) when is_atom(ts_unit) do
     ts = if ts == nil, do: System.monotonic_time(ts_unit), else: ts
     GenServer.cast(pid, {:put_ts, ts, ts_unit})
   end
 
+  @spec set_time(GenServer.server(), number) :: :ok
   def set_time(pid, ts) when is_number(ts) do
     GenServer.cast(pid, {:put_ts, ts, nil})
   end
 
+  @spec set( GenServer.server(), Enum.t() ) :: :ok
   def set(pid, opts) do
     pidex = GenServer.call(pid, {:get, :pidex})
     pidex = struct!(pidex, opts)
     GenServer.cast(pid, {:put, :pidex, pidex})
   end
 
+  @spec settings( GenServer.server() ) :: :ok
   def settings(pid) do
     GenServer.call(pid, {:get, :pidex})
   end
 
+  @spec state( GenServer.server() ) :: any
   def state(pid) do
     GenServer.call(pid, {:get, :state})
   end
 
+  @spec reset(GenServer.server(), any) :: :ok
   def reset(pid, state \\ %Pidex.State{}) do
     GenServer.cast(pid, {:put, :state, state})
   end
 
+  @spec output(GenServer.server()) :: number
   def output(pid) do
     GenServer.call(pid, {:get, :output})
   end
 
+  @spec update_async(GenServer.server(), number, Pidex.timestamp() | nil ) :: :ok
   def update_async(pid, process_value, ts \\ nil) when is_number(process_value) do
     GenServer.cast(pid, {:process_update, process_value, ts})
   end
 
+  @spec update(GenServer.server(), number, Pidex.timestamp() | nil) :: any
   def update(pid, process_value, ts \\ nil) when is_number(process_value) do
     GenServer.call(pid, {:process_update, process_value, ts})
   end
