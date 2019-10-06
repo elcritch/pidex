@@ -37,6 +37,6 @@ defmodule Pidex do
           {updated_value, p_integral!}
       end
 
-    {output, %Pidex.State{error: p_error!, integral: p_integral!}}
+    {output, %Pidex.State{error: p_error!, integral: p_integral!, ts: ts}}
   end
 end
