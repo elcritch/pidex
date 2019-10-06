@@ -24,15 +24,17 @@ defmodule Pidex do
 
     output = kP*p_error! + kI*p_integral! + kD*p_derivative! + state.bias
 
+    # Implement anti-windup & overmax protection
+    # cf https://apmonitor.com/pdc/index.php/Main/ProportionalIntegralDerivative
     %{min_point: min_point, max_point: max_point} = pid
-    output =
+    {output, p_integral!} =
       case output do
         updated_value when is_number(min_point) and updated_value < min_point ->
-          pid.min_point
+          {pid.min_point, p_integral! - p_error! * dT}
         updated_value when is_number(max_point) and updated_value > max_point ->
-          max_point
+          {max_point, p_integral! - p_error! * dT}
         updated_value ->
-          updated_value
+          {updated_value, p_integral!}
       end
 
     {output, %Pidex.State{error: p_error!, integral: p_integral!}}

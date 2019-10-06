@@ -24,8 +24,8 @@ defmodule PidexTest do
 
   test "test pid" do
     # compare sample and constants to https://github.com/ivmech/ivPID/blob/master/test_pid.py
-    sample_time = 0.01
-    pid = %Pidex{kP: 1.2, kI: 1.0, kD: 0.001 }
+    sample_time = 0.02
+    pid = %Pidex{kP: 1.2, kI: 1.0, kD: 0.001, min_point: -20.0, max_point: 20.0}
     state = %Pidex.State{ts: 0.00}
 
     Process.put(:feedback, 0)
