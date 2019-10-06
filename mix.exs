@@ -7,8 +7,14 @@ defmodule Pidex.MixProject do
       version: "0.1.0",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      description: description(),
+      package: package(),
     ]
+  end
+
+  defp description() do
+    "Pure Elixir library for PID controllers (proportional–integral–derivative controller)"
   end
 
   # Run "mix help compile.app" to learn about applications.
@@ -25,4 +31,16 @@ defmodule Pidex.MixProject do
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
   end
+
+  defp package() do
+    [
+      files: [
+        "lib", "mix.exs", "README*", "LICENSE*"
+      ],
+      maintainers: ["Jaremy Creechley"],
+      licenses: ["Apache 2.0"],
+      links: %{"GitHub" => "https://github.com/elcritch/pidex"}
+    ]
+  end
+
 end

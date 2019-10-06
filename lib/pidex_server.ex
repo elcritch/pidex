@@ -2,13 +2,13 @@ defmodule Pidex.PdxServer do
   require Logger
   use GenServer
 
-  def set_time(pid, ts) when is_number(ts) do
-    GenServer.cast(pid, {:put_ts, ts, nil})
+  def set_time(pid, ts_unit) when is_atom(ts_unit) do
+    ts = System.monotonic_time(ts_unit)
+    GenServer.cast(pid, {:put_ts, ts, ts_unit})
   end
 
-  def set_time(pid, ts, ts_unit) when not is_nil(ts_unit) do
-    ts = if ts == nil, do: System.monotonic_time(ts_unit), else: ts
-    GenServer.cast(pid, {:put_ts, ts, ts_unit})
+  def set_time(pid, ts) when is_number(ts) do
+    GenServer.cast(pid, {:put_ts, ts, nil})
   end
 
   def set(pid, opts) do
@@ -51,7 +51,7 @@ defmodule Pidex.PdxServer do
     # IO.puts("pidex server args: #{inspect args}")
     # GenServer(self(), :update_time)
     ts_unit = args[:ts_unit] || :second
-    set_time(self(), nil, ts_unit)
+    set_time(self(), ts_unit)
 
     {:ok,
      %{pidex: args[:pidex] || args[:settings] || %Pidex{},

@@ -139,7 +139,7 @@ defmodule PidexTest do
     # IO.puts "Started PdxServer "
     Process.put(:feedback, 0.0)
 
-    pid |> PdxServer.set_time(nil, :millisecond)
+    pid |> PdxServer.set_time(:millisecond)
     results =
       for i <- 1..50, into: [] do
           Process.sleep(20)
