@@ -56,14 +56,14 @@ defmodule PidexTest do
   ]
 
   test "basic pid" do
-    pid = %Pidex{set_point: 10.0, kP: 3.0, kI: 2.0, kD: 1.0 }
+    pid = %Pidex{set_point: 10.0, kP: 3.0, kI: 2.0, kD: 1.0, bias: 0.0 }
     state = %Pidex.State{}
 
     {out1, state} = {pid, state, 5.0, 1} |> Pidex.update()
 
     # IO.puts "pid out: #{inspect out1} <#{inspect state}>"
     assert_in_delta out1, 30.0, 1.0e-6
-    assert_in_delta state.bias, 0.0, 1.0e-6
+    # assert_in_delta state.bias, 0.0, 1.0e-6
     assert_in_delta state.error, 5.0, 1.0e-6
     assert_in_delta state.integral, 5.0, 1.0e-6
     assert_in_delta state.ts, 1.0, 1.0e-6

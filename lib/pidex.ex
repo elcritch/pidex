@@ -1,12 +1,12 @@
 defmodule Pidex.State do
-  defstruct error: 0.0, integral: 0.0, bias: 0.0, ts: 0
+  defstruct error: 0.0, integral: 0.0,  ts: 0
 end
 
 defmodule Pidex do
   @moduledoc """
   Documentation for Pidex.
   """
-  defstruct set_point: 0.0, min_point: nil, max_point: nil, kP: 0.0, kI: 0.0, kD: 0.0, ts_factor: 1.0
+  defstruct set_point: 0.0, min_point: nil, max_point: nil, kP: 0.0, kI: 0.0, kD: 0.0, ts_factor: 1.0, bias: 0.0
 
   @type timestamp() :: integer | float
 
@@ -38,7 +38,7 @@ defmodule Pidex do
     p_integral! = state.integral + (p_error! * dT)
     p_derivative! = (p_error! - state.error) / dT
 
-    output = kP*p_error! + kI*p_integral! + kD*p_derivative! + state.bias
+    output = kP*p_error! + kI*p_integral! + kD*p_derivative! + pid.bias
 
     # Implement anti-windup & overmax protection
     # cf https://apmonitor.com/pdc/index.php/Main/ProportionalIntegralDerivative
@@ -46,7 +46,7 @@ defmodule Pidex do
     {output, p_integral!} =
       case output do
         updated_value when is_number(min_point) and updated_value < min_point ->
-          {pid.min_point, p_integral! - p_error! * dT}
+          {min_point, p_integral! - p_error! * dT}
         updated_value when is_number(max_point) and updated_value > max_point ->
           {max_point, p_integral! - p_error! * dT}
         updated_value ->
@@ -56,3 +56,6 @@ defmodule Pidex do
     {output, %Pidex.State{error: p_error!, integral: p_integral!, ts: ts}}
   end
 end
+
+
+# TroFirmware.PdxRefOrig |> Pidex.PdxServer.set(kP: 3.4e-0)
