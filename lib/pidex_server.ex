@@ -4,15 +4,17 @@ defmodule Pidex.PdxServer do
 
   @type proc_state :: %{output: number, pidex: Pidex.t(), state: Pidex.State.t()}
 
-  @spec set_time(GenServer.server(), number | nil, System.time_unit() ) :: :ok
-  def set_time(pid, ts, ts_unit) when is_atom(ts_unit) do
-    ts = if ts == nil, do: System.monotonic_time(ts_unit), else: ts
-    GenServer.cast(pid, {:put_ts, ts, ts_unit})
+  def set_time_units(pid, ts_unit) when is_atom(ts_unit) do
+    GenServer.cast(pid, {:put_ts, nil, ts_unit})
   end
 
   @spec set_time(GenServer.server(), number) :: :ok
   def set_time(pid, ts) when is_number(ts) do
     GenServer.cast(pid, {:put_ts, ts, nil})
+  end
+
+  def set_time(pid) do
+    GenServer.cast(pid, {:put_ts, nil, nil})
   end
 
   @spec set( GenServer.server(), Enum.t() ) :: :ok
@@ -35,6 +37,7 @@ defmodule Pidex.PdxServer do
   @spec reset(GenServer.server(), any) :: :ok
   def reset(pid, state \\ %Pidex.State{}) do
     GenServer.cast(pid, {:put, :state, state})
+    pid |> set_time()
   end
 
   @spec output(GenServer.server()) :: number
@@ -62,7 +65,7 @@ defmodule Pidex.PdxServer do
     # IO.puts("pidex server args: #{inspect args}")
     # GenServer(self(), :update_time)
     ts_unit = args[:ts_unit] || :second
-    set_time(self(), nil, ts_unit)
+    set_time(self())
 
     {:ok,
      %{pidex: args[:pidex] || args[:settings] || %Pidex{},
@@ -88,10 +91,11 @@ defmodule Pidex.PdxServer do
 
   def handle_cast({:put_ts, ts, ts_unit}, proc_state) do
     # IO.puts "update_time: #{ts}"
+    ts = ts || System.monotonic_time(proc_state.ts_unit || ts_unit)
     state = %{ proc_state.state | ts: ts }
     proc_state =
       proc_state
-      |> Map.put(:ts_unit, ts_unit)
+      |> Map.put(:ts_unit, ts_unit || proc_state.ts_unit)
       |> Map.put(:state, state)
 
     {:noreply, proc_state}
@@ -118,3 +122,4 @@ defmodule Pidex.PdxServer do
     %{ proc | state: state, output: output}
   end
 end
+
