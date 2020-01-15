@@ -35,7 +35,7 @@ defmodule Pidex do
     # IO.puts "update: dT: #{inspect dT}, ts: #{ts}, state.ts: #{state.ts}"
     unless dT > 0, do: raise %ArgumentError{message: "argument error, PID timestep must be non-zero"}
 
-    p_error! = :math.pow(target - process_value, state.error_power)
+    p_error! = :math.pow(target - process_value, pid.error_power)
     p_integral! = state.integral + (p_error! * dT)
     p_derivative! = (p_error! - state.error) / dT
 
