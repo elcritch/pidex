@@ -8,7 +8,7 @@ defmodule Pidex do
   """
   require Logger
 
-  defstruct set_point: 0.0, min_point: nil, max_point: nil, kP: 0.0, kI: 0.0, kD: 0.0, ts_factor: 1.0, bias: 0.0
+  defstruct set_point: 0.0, min_point: nil, max_point: nil, kP: 0.0, kI: 0.0, kD: 0.0, ts_factor: 1.0, bias: 0.0, error_power: 1.0
 
   @type timestamp() :: integer | float
 
@@ -35,7 +35,7 @@ defmodule Pidex do
     # IO.puts "update: dT: #{inspect dT}, ts: #{ts}, state.ts: #{state.ts}"
     unless dT > 0, do: raise %ArgumentError{message: "argument error, PID timestep must be non-zero"}
 
-    p_error! = target - process_value
+    p_error! = :math.pow(target - process_value, state.error_power)
     p_integral! = state.integral + (p_error! * dT)
     p_derivative! = (p_error! - state.error) / dT
 
