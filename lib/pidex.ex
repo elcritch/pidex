@@ -11,6 +11,7 @@ defmodule Pidex do
   defstruct set_point: 0.0, min_point: nil, max_point: nil, kP: 0.0, kI: 0.0, kD: 0.0, ts_factor: 1.0, bias: 0.0, error_power: 1.0
 
   @type timestamp() :: integer | float
+  @type t() :: %Pidex{ }
 
   @doc """
   Main PID(ex) controller update function. Each call to this will produce a new PID(ex)
