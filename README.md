@@ -1,3 +1,5 @@
+**Warning**: This library is likely incorrect. I was trying some random stuff with some broken hardware. Though the core abstraction is there but it's not properly tested. 
+
 # Pidex
 
 Pure Elixir library for PID controllers (proportional–integral–derivative controller). Usable as both a pure function or GenServer setup.
